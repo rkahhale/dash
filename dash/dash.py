@@ -86,6 +86,8 @@ class Dash(object):
             index_string=_default_index,
             external_scripts=None,
             external_stylesheets=None,
+            hot_reload=False,
+            hot_reload_interval=1000,
             suppress_callback_exceptions=None,
             **kwargs):
 
@@ -103,7 +105,9 @@ class Dash(object):
             flask.helpers.get_root_path(name), 'assets'
         )
 
-        self._reload_hash = str(uuid.uuid4().hex).strip('-')
+        self._reload_hash = str(uuid.uuid4().hex).strip('-')\
+            if hot_reload else ''
+        self._reload_interval = hot_reload_interval
 
         # allow users to supply their own flask server
         self.server = server or Flask(name, static_folder=static_folder)
@@ -282,11 +286,16 @@ class Dash(object):
         )
 
     def _config(self):
-        return {
-            'reload_hash': self._reload_hash,
+        config = {
             'url_base_pathname': self.url_base_pathname,
             'requests_pathname_prefix': self.config['requests_pathname_prefix']
         }
+        if self._reload_hash:
+            config['hot_reload'] = {
+                'hash': self._reload_hash,
+                'interval': self._reload_interval
+            }
+        return config
 
     def serve_reload_hash(self):
         return flask.jsonify({'reloadHash': self._reload_hash})
