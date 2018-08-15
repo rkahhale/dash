@@ -1,3 +1,6 @@
+import uuid
+
+
 def interpolate_str(template, **data):
     s = template
     for k, v in data.items():
@@ -18,6 +21,10 @@ def format_tag(tag_name, attributes, inner='', closed=False, opened=False):
         tag=tag_name,
         attributes=' '.join([
             '{}="{}"'.format(k, v) for k, v in attributes.items()]))
+
+
+def generate_hash():
+    return str(uuid.uuid4().hex).strip('-')
 
 
 def get_asset_path(requests_pathname, routes_pathname, asset_path):

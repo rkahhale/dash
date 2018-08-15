@@ -6,7 +6,7 @@ import collections
 import importlib
 import json
 import pkgutil
-import uuid
+import threading
 import warnings
 import re
 
@@ -25,6 +25,8 @@ from . import exceptions
 from ._utils import AttributeDict as _AttributeDict
 from ._utils import interpolate_str as _interpolate
 from ._utils import format_tag as _format_tag
+from ._utils import generate_hash as _generate_hash
+from . import _watch
 from ._utils import get_asset_path as _get_asset_path
 from . import _configs
 
@@ -104,10 +106,6 @@ class Dash(object):
         self._assets_folder = assets_folder or os.path.join(
             flask.helpers.get_root_path(name), 'assets'
         )
-
-        self._reload_hash = str(uuid.uuid4().hex).strip('-')\
-            if hot_reload else ''
-        self._reload_interval = hot_reload_interval
 
         # allow users to supply their own flask server
         self.server = server or Flask(name, static_folder=static_folder)
@@ -227,6 +225,20 @@ class Dash(object):
         self._cached_layout = None
         self.routes = []
 
+        # hot reload
+        self._reload_hash = _generate_hash() \
+            if hot_reload else ''
+        self._reload_interval = hot_reload_interval
+        self._hard_reload = False
+        self._lock = threading.RLock()
+        self._watch_thread = None
+        if hot_reload:
+            self._watch_thread = threading.Thread(
+                target=lambda: _watch.watch([self._assets_folder],
+                                            self._on_assets_change,
+                                            sleep_time=0.5))
+            self._watch_thread.start()
+
     @property
     def layout(self):
         return self._layout
@@ -298,7 +310,10 @@ class Dash(object):
         return config
 
     def serve_reload_hash(self):
-        return flask.jsonify({'reloadHash': self._reload_hash})
+        return flask.jsonify({
+            'reloadHash': self._reload_hash,
+            'hard': self._hard_reload
+        })
 
     def serve_routes(self):
         return flask.Response(
@@ -967,6 +982,12 @@ class Dash(object):
             self.config.requests_pathname_prefix,
             self.config.routes_pathname_prefix,
             path)
+
+    def _on_assets_change(self, _):
+        self._lock.acquire()
+        self._hard_reload = True
+        self._reload_hash = _generate_hash()
+        self._lock.release()
 
     def run_server(self,
                    port=8050,
