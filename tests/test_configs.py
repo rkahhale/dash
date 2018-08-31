@@ -1,4 +1,5 @@
 import unittest
+
 # noinspection PyProtectedMember
 from dash import _configs
 from dash import exceptions as _exc
@@ -7,7 +8,6 @@ import os
 
 
 class MyTestCase(unittest.TestCase):
-
     def setUp(self):
         environ = _configs.env_configs()
 
@@ -22,12 +22,13 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual('/', req)
 
         _, routes, req = _configs.pathname_configs(
-            routes_pathname_prefix='/dash/')
+            routes_pathname_prefix='/dash/'
+        )
 
         self.assertEqual('/dash/', req)
 
         _, routes, req = _configs.pathname_configs(
-            requests_pathname_prefix='/my-dash-app/',
+            requests_pathname_prefix='/my-dash-app/'
         )
 
         self.assertEqual(routes, '/')
@@ -35,7 +36,7 @@ class MyTestCase(unittest.TestCase):
 
         _, routes, req = _configs.pathname_configs(
             routes_pathname_prefix='/dash/',
-            requests_pathname_prefix='/my-dash-app/dash/'
+            requests_pathname_prefix='/my-dash-app/dash/',
         )
 
         self.assertEqual('/dash/', routes)
@@ -49,19 +50,26 @@ class MyTestCase(unittest.TestCase):
 
         with self.assertRaises(_exc.InvalidConfig) as context:
             _, _, _ = _configs.pathname_configs(
-                url_base_pathname='/invalid',
-                routes_pathname_prefix='/invalid')
+                url_base_pathname='/invalid', routes_pathname_prefix='/invalid'
+            )
 
-            self.assertTrue(str(context.exception).split('.')[0]
-                            .endswith('`routes_pathname_prefix`'))
+            self.assertTrue(
+                str(context.exception)
+                .split('.')[0]
+                .endswith('`routes_pathname_prefix`')
+            )
 
         with self.assertRaises(_exc.InvalidConfig) as context:
             _, _, _ = _configs.pathname_configs(
                 url_base_pathname='/my-path',
-                requests_pathname_prefix='/another-path')
+                requests_pathname_prefix='/another-path',
+            )
 
-            self.assertTrue(str(context.exception).split('.')[0]
-                            .endswith('`requests_pathname_prefix`'))
+            self.assertTrue(
+                str(context.exception)
+                .split('.')[0]
+                .endswith('`requests_pathname_prefix`')
+            )
 
         with self.assertRaises(_exc.InvalidConfig) as context:
             _, _, _ = _configs.pathname_configs('my-path')

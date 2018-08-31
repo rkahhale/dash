@@ -7,22 +7,17 @@ import percy
 
 
 class IntegrationTests(unittest.TestCase):
-
     def percy_snapshot(cls, name=''):
         snapshot_name = '{} - {}'.format(name, sys.version_info)
         print(snapshot_name)
-        cls.percy_runner.snapshot(
-            name=snapshot_name
-        )
+        cls.percy_runner.snapshot(name=snapshot_name)
 
     @classmethod
     def setUpClass(cls):
         super(IntegrationTests, cls).setUpClass()
         cls.driver = webdriver.Chrome()
 
-        loader = percy.ResourceLoader(
-            webdriver=cls.driver
-        )
+        loader = percy.ResourceLoader(webdriver=cls.driver)
         cls.percy_runner = percy.Runner(loader=loader)
 
         cls.percy_runner.initialize_build()
@@ -44,12 +39,7 @@ class IntegrationTests(unittest.TestCase):
     def startServer(s, dash):
         def run():
             dash.scripts.config.serve_locally = True
-            dash.run_server(
-                port=8050,
-                debug=False,
-                processes=4,
-                threaded=False
-            )
+            dash.run_server(port=8050, debug=False, processes=4, threaded=False)
 
         # Run on a separate process so that it doesn't block
         s.server_process = multiprocessing.Process(target=run)

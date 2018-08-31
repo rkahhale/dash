@@ -4,10 +4,7 @@ import os
 import shutil
 import unittest
 from dash.development.component_loader import load_components, generate_classes
-from dash.development.base_component import (
-    generate_class,
-    Component
-)
+from dash.development.base_component import generate_class, Component
 
 METADATA_PATH = 'metadata.json'
 
@@ -97,9 +94,9 @@ METADATA_STRING = '''{
         }
     }
 }'''
-METADATA = json\
-    .JSONDecoder(object_pairs_hook=collections.OrderedDict)\
-    .decode(METADATA_STRING)
+METADATA = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(
+    METADATA_STRING
+)
 
 
 class TestLoadComponents(unittest.TestCase):
@@ -115,14 +112,14 @@ class TestLoadComponents(unittest.TestCase):
             'MyComponent',
             METADATA['MyComponent.react.js']['props'],
             METADATA['MyComponent.react.js']['description'],
-            'default_namespace'
+            'default_namespace',
         )
 
         A = generate_class(
             'A',
             METADATA['A.react.js']['props'],
             METADATA['A.react.js']['description'],
-            'default_namespace'
+            'default_namespace',
         )
 
         c = load_components(METADATA_PATH)
@@ -133,26 +130,18 @@ class TestLoadComponents(unittest.TestCase):
             'baz': 'Lemons',
             'data-foo': 'Blah',
             'aria-bar': 'Seven',
-            'children': 'Child'
-        }
-        AKwargs = {
             'children': 'Child',
-            'href': 'Hello World'
         }
+        AKwargs = {'children': 'Child', 'href': 'Hello World'}
 
-        self.assertTrue(
-            isinstance(MyComponent(**MyComponentKwargs), Component)
-        )
+        self.assertTrue(isinstance(MyComponent(**MyComponentKwargs), Component))
 
         self.assertEqual(
             repr(MyComponent(**MyComponentKwargs)),
-            repr(c[0](**MyComponentKwargs))
+            repr(c[0](**MyComponentKwargs)),
         )
 
-        self.assertEqual(
-            repr(A(**AKwargs)),
-            repr(c[1](**AKwargs))
-        )
+        self.assertEqual(repr(A(**AKwargs)), repr(c[1](**AKwargs)))
 
 
 class TestGenerateClasses(unittest.TestCase):
@@ -174,19 +163,20 @@ class TestGenerateClasses(unittest.TestCase):
             'MyComponent',
             METADATA['MyComponent.react.js']['props'],
             METADATA['MyComponent.react.js']['description'],
-            'default_namespace'
+            'default_namespace',
         )
 
         A_runtime = generate_class(
             'A',
             METADATA['A.react.js']['props'],
             METADATA['A.react.js']['description'],
-            'default_namespace'
+            'default_namespace',
         )
 
         generate_classes('default_namespace', METADATA_PATH)
-        from default_namespace.MyComponent import MyComponent \
-            as MyComponent_buildtime
+        from default_namespace.MyComponent import (
+            MyComponent as MyComponent_buildtime
+        )
         from default_namespace.A import A as A_buildtime
 
         MyComponentKwargs = {
@@ -196,18 +186,12 @@ class TestGenerateClasses(unittest.TestCase):
             'data-foo': 'Blah',
             'aria-bar': 'Seven',
             'baz': 'Lemons',
-            'children': 'Child'
-        }
-        AKwargs = {
             'children': 'Child',
-            'href': 'Hello World'
         }
+        AKwargs = {'children': 'Child', 'href': 'Hello World'}
 
         self.assertTrue(
-            isinstance(
-                MyComponent_buildtime(**MyComponentKwargs),
-                Component
-            )
+            isinstance(MyComponent_buildtime(**MyComponentKwargs), Component)
         )
 
         self.assertEqual(
@@ -216,6 +200,5 @@ class TestGenerateClasses(unittest.TestCase):
         )
 
         self.assertEqual(
-            repr(A_runtime(**AKwargs)),
-            repr(A_buildtime(**AKwargs))
+            repr(A_runtime(**AKwargs)), repr(A_buildtime(**AKwargs))
         )

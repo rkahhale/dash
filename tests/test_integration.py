@@ -20,28 +20,24 @@ from .utils import assert_clean_console, invincible, wait_for
 class Tests(IntegrationTests):
     def setUp(self):
         def wait_for_element_by_id(id):
-            wait_for(lambda: None is not invincible(
-                lambda: self.driver.find_element_by_id(id)
-            ))
+            wait_for(
+                lambda: None
+                is not invincible(lambda: self.driver.find_element_by_id(id))
+            )
             return self.driver.find_element_by_id(id)
+
         self.wait_for_element_by_id = wait_for_element_by_id
 
     def test_simple_callback(self):
         app = dash.Dash(__name__)
-        app.layout = html.Div([
-            dcc.Input(
-                id='input',
-                value='initial value'
-            ),
-            html.Div(
-                html.Div([
-                    1.5,
-                    None,
-                    'string',
-                    html.Div(id='output-1')
-                ])
-            )
-        ])
+        app.layout = html.Div(
+            [
+                dcc.Input(id='input', value='initial value'),
+                html.Div(
+                    html.Div([1.5, None, 'string', html.Div(id='output-1')])
+                ),
+            ]
+        )
 
         call_count = Value('i', 0)
 
@@ -70,28 +66,34 @@ class Tests(IntegrationTests):
             # an initial call to retrieve the first value
             1 +
             # one for each hello world character
-            len('hello world')
+            len('hello world'),
         )
 
         assert_clean_console(self)
 
     def test_wildcard_callback(self):
         app = dash.Dash(__name__)
-        app.layout = html.Div([
-            dcc.Input(
-                id='input',
-                value='initial value'
-            ),
-            html.Div(
-                html.Div([
-                    1.5,
-                    None,
-                    'string',
-                    html.Div(id='output-1', **{'data-cb': 'initial value',
-                                               'aria-cb': 'initial value'})
-                ])
-            )
-        ])
+        app.layout = html.Div(
+            [
+                dcc.Input(id='input', value='initial value'),
+                html.Div(
+                    html.Div(
+                        [
+                            1.5,
+                            None,
+                            'string',
+                            html.Div(
+                                id='output-1',
+                                **{
+                                    'data-cb': 'initial value',
+                                    'aria-cb': 'initial value',
+                                }
+                            ),
+                        ]
+                    )
+                ),
+            ]
+        )
 
         input_call_count = Value('i', 0)
 
@@ -100,8 +102,9 @@ class Tests(IntegrationTests):
             input_call_count.value = input_call_count.value + 1
             return value
 
-        @app.callback(Output('output-1', 'children'),
-                      [Input('output-1', 'data-cb')])
+        @app.callback(
+            Output('output-1', 'children'), [Input('output-1', 'data-cb')]
+        )
         def update_text(data):
             return data
 
@@ -124,7 +127,7 @@ class Tests(IntegrationTests):
             # an initial call
             1 +
             # one for each hello world character
-            len('hello world')
+            len('hello world'),
         )
 
         assert_clean_console(self)
@@ -136,11 +139,13 @@ class Tests(IntegrationTests):
         initial_output = 'initial output'
 
         app = dash.Dash(__name__)
-        app.layout = html.Div([
-            dcc.Input(id='input', value=initial_input),
-            html.Div(initial_output, id='output1'),
-            html.Div(initial_output, id='output2'),
-        ])
+        app.layout = html.Div(
+            [
+                dcc.Input(id='input', value=initial_input),
+                html.Div(initial_output, id='output1'),
+                html.Div(initial_output, id='output2'),
+            ]
+        )
 
         callback1_count = Value('i', 0)
         callback2_count = Value('i', 0)
@@ -151,7 +156,9 @@ class Tests(IntegrationTests):
             raise PreventUpdate("testing callback does not update")
             return value
 
-        @app.callback(Output('output2', 'children'), [Input('output1', 'children')])
+        @app.callback(
+            Output('output2', 'children'), [Input('output1', 'children')]
+        )
         def callback2(value):
             callback2_count.value = callback2_count.value + 1
             return value
@@ -181,20 +188,24 @@ class Tests(IntegrationTests):
     def test_wildcard_data_attributes(self):
         app = dash.Dash()
         test_time = datetime.datetime(2012, 1, 10, 2, 3)
-        test_date = datetime.date(test_time.year, test_time.month,
-                                  test_time.day)
-        app.layout = html.Div([
-            html.Div(
-                id="inner-element",
-                **{
-                    'data-string': 'multiple words',
-                    'data-number': 512,
-                    'data-none': None,
-                    'data-date': test_date,
-                    'aria-progress': 5
-                }
-            )
-        ], id='data-element')
+        test_date = datetime.date(
+            test_time.year, test_time.month, test_time.day
+        )
+        app.layout = html.Div(
+            [
+                html.Div(
+                    id="inner-element",
+                    **{
+                        'data-string': 'multiple words',
+                        'data-number': 512,
+                        'data-none': None,
+                        'data-date': test_date,
+                        'aria-progress': 5,
+                    }
+                )
+            ],
+            id='data-element',
+        )
 
         self.startServer(app)
 
@@ -206,22 +217,27 @@ class Tests(IntegrationTests):
 
         # Somehow the html attributes are unordered.
         # Try different combinations (they're all valid html)
-        permutations = itertools.permutations([
-            'id="inner-element"',
-            'data-string="multiple words"',
-            'data-number="512"',
-            'data-date="%s"' % test_date,
-            'aria-progress="5"'
-        ], 5)
+        permutations = itertools.permutations(
+            [
+                'id="inner-element"',
+                'data-string="multiple words"',
+                'data-number="512"',
+                'data-date="%s"' % test_date,
+                'aria-progress="5"',
+            ],
+            5,
+        )
         passed = False
         for permutation in permutations:
-            actual_cleaned = re.sub(comment_regex, '',
-                                    div.get_attribute('innerHTML'))
+            actual_cleaned = re.sub(
+                comment_regex, '', div.get_attribute('innerHTML')
+            )
             expected_cleaned = re.sub(
                 comment_regex,
                 '',
-                "<div PERMUTE></div>"
-                .replace('PERMUTE', ' '.join(list(permutation)))
+                "<div PERMUTE></div>".replace(
+                    'PERMUTE', ' '.join(list(permutation))
+                ),
             )
             passed = passed or (actual_cleaned == expected_cleaned)
             if passed:
@@ -229,8 +245,7 @@ class Tests(IntegrationTests):
         if not passed:
             raise Exception(
                 'HTML does not match\nActual:\n{}\n\nExpected:\n{}'.format(
-                    actual_cleaned,
-                    expected_cleaned
+                    actual_cleaned, expected_cleaned
                 )
             )
 
@@ -238,11 +253,15 @@ class Tests(IntegrationTests):
 
     def test_no_props_component(self):
         app = dash.Dash()
-        app.layout = html.Div([
-            dash_dangerously_set_inner_html.DangerouslySetInnerHTML('''
+        app.layout = html.Div(
+            [
+                dash_dangerously_set_inner_html.DangerouslySetInnerHTML(
+                    '''
                 <h1>No Props Component</h1>
-            ''')
-        ])
+            '''
+                )
+            ]
+        )
         self.startServer(app)
         assert_clean_console(self)
         self.percy_snapshot(name='no-props-component')
@@ -250,34 +269,38 @@ class Tests(IntegrationTests):
     def test_flow_component(self):
         app = dash.Dash()
 
-        app.layout = html.Div([
-            dash_flow_example.ExampleReactComponent(
-                id='react',
-                value='my-value',
-                label='react component'
-            ),
-            dash_flow_example.ExampleFlowComponent(
-                id='flow',
-                value='my-value',
-                label='flow component'
-            ),
-            html.Hr(),
-            html.Div(id='output')
-        ])
+        app.layout = html.Div(
+            [
+                dash_flow_example.ExampleReactComponent(
+                    id='react', value='my-value', label='react component'
+                ),
+                dash_flow_example.ExampleFlowComponent(
+                    id='flow', value='my-value', label='flow component'
+                ),
+                html.Hr(),
+                html.Div(id='output'),
+            ]
+        )
 
-        @app.callback(Output('output', 'children'),
-                      [Input('react', 'value'), Input('flow', 'value')])
+        @app.callback(
+            Output('output', 'children'),
+            [Input('react', 'value'), Input('flow', 'value')],
+        )
         def display_output(react_value, flow_value):
-            return html.Div([
-                'You have entered {} and {}'.format(react_value, flow_value),
-                html.Hr(),
-                html.Label('Flow Component Docstring'),
-                html.Pre(dash_flow_example.ExampleFlowComponent.__doc__),
-                html.Hr(),
-                html.Label('React PropTypes Component Docstring'),
-                html.Pre(dash_flow_example.ExampleReactComponent.__doc__),
-                html.Div(id='waitfor')
-            ])
+            return html.Div(
+                [
+                    'You have entered {} and {}'.format(
+                        react_value, flow_value
+                    ),
+                    html.Hr(),
+                    html.Label('Flow Component Docstring'),
+                    html.Pre(dash_flow_example.ExampleFlowComponent.__doc__),
+                    html.Hr(),
+                    html.Label('React PropTypes Component Docstring'),
+                    html.Pre(dash_flow_example.ExampleReactComponent.__doc__),
+                    html.Div(id='waitfor'),
+                ]
+            )
 
         self.startServer(app)
         self.wait_for_element_by_id('waitfor')
@@ -363,8 +386,9 @@ class Tests(IntegrationTests):
         self.percy_snapshot('custom-index')
 
     def test_assets(self):
-        app = dash.Dash(assets_folder='tests/assets',
-                        assets_ignore='.*ignored.*')
+        app = dash.Dash(
+            assets_folder='tests/assets', assets_ignore='.*ignored.*'
+        )
         app.index_string = '''
         <!DOCTYPE html>
         <html>
@@ -384,10 +408,9 @@ class Tests(IntegrationTests):
         </html>
         '''
 
-        app.layout = html.Div([
-            html.Div(id='content'),
-            dcc.Input(id='test')
-        ], id='layout')
+        app.layout = html.Div(
+            [html.Div(id='content'), dcc.Input(id='test')], id='layout'
+        )
 
         self.startServer(app)
 
@@ -403,9 +426,16 @@ class Tests(IntegrationTests):
         tested = self.wait_for_element_by_id('tested')
         tested = json.loads(tested.text)
 
-        order = ('load_first', 'load_after', 'load_after1',
-                 'load_after10', 'load_after11', 'load_after2',
-                 'load_after3', 'load_after4', )
+        order = (
+            'load_first',
+            'load_after',
+            'load_after1',
+            'load_after10',
+            'load_after11',
+            'load_after2',
+            'load_after3',
+            'load_after4',
+        )
 
         self.assertEqual(len(order), len(tested))
 
@@ -455,13 +485,13 @@ class Tests(IntegrationTests):
             {
                 'src': 'https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js',
                 'integrity': 'sha256-YN22NHB7zs5+LjcHWgk3zL0s+CRnzCQzDOFnndmUamY=',
-                'crossorigin': 'anonymous'
+                'crossorigin': 'anonymous',
             },
             {
                 'src': 'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js',
                 'integrity': 'sha256-VKITM616rVzV+MI3kZMNUDoY5uTsuSl1ZvEeZhNoJVk=',
-                'crossorigin': 'anonymous'
-            }
+                'crossorigin': 'anonymous',
+            },
         ]
 
         css_files = [
@@ -470,13 +500,13 @@ class Tests(IntegrationTests):
                 'href': 'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css',
                 'rel': 'stylesheet',
                 'integrity': 'sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO',
-                'crossorigin': 'anonymous'
-            }
+                'crossorigin': 'anonymous',
+            },
         ]
 
-        app = dash.Dash(__name__,
-                        external_scripts=js_files,
-                        external_stylesheets=css_files)
+        app = dash.Dash(
+            __name__, external_scripts=js_files, external_stylesheets=css_files
+        )
 
         app.index_string = '''
         <!DOCTYPE html>
@@ -508,8 +538,9 @@ class Tests(IntegrationTests):
         css_urls = [x['href'] if isinstance(x, dict) else x for x in css_files]
 
         for fmt, url in itertools.chain(
-                (("//script[@src='{}']", x) for x in js_urls),
-                (("//link[@href='{}']", x) for x in css_urls)):
+            (("//script[@src='{}']", x) for x in js_urls),
+            (("//link[@href='{}']", x) for x in css_urls),
+        ):
             self.driver.find_element_by_xpath(fmt.format(url))
 
         # Ensure the button style was overloaded by reset (set to 38px in codepen)
@@ -528,6 +559,7 @@ class Tests(IntegrationTests):
 
         def create_layout():
             return html.Div('Hello World')
+
         app.layout = create_layout
 
         self.startServer(app)

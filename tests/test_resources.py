@@ -5,21 +5,15 @@ from dash.development.base_component import generate_class
 
 
 def generate_components():
-    Div = generate_class('Div', ('children', 'id',), 'dash_html_components')
-    Span = generate_class('Span', ('children', 'id',), 'dash_html_components')
-    Input = generate_class(
-        'Input', ('children', 'id',),
-        'dash_core_components')
+    Div = generate_class('Div', ('children', 'id'), 'dash_html_components')
+    Span = generate_class('Span', ('children', 'id'), 'dash_html_components')
+    Input = generate_class('Input', ('children', 'id'), 'dash_core_components')
     return Div, Span, Input
 
 
 def external_url(package_name):
-    return (
-        '//unpkg.com/{}@0.2.9'
-        '/{}/bundle.js'.format(
-            package_name.replace('_', '-'),
-            package_name
-        )
+    return '//unpkg.com/{}@0.2.9' '/{}/bundle.js'.format(
+        package_name.replace('_', '-'), package_name
     )
 
 
@@ -32,7 +26,6 @@ def abs_path(package_name):
 
 
 class TestResources(unittest.TestCase):
-
     def resource_test(self, css_or_js):
         Div, Span, Input = generate_components()
 
@@ -40,26 +33,34 @@ class TestResources(unittest.TestCase):
             # The CSS URLs and paths will look a little bit differently
             # than the JS urls but that doesn't matter for the purposes
             # of the test
-            Div._css_dist = Span._css_dist = [{
-                'external_url': external_url('dash_html_components'),
-                'relative_package_path': rel_path('dash_html_components')
-            }]
+            Div._css_dist = Span._css_dist = [
+                {
+                    'external_url': external_url('dash_html_components'),
+                    'relative_package_path': rel_path('dash_html_components'),
+                }
+            ]
 
-            Input._css_dist = [{
-                'external_url': external_url('dash_core_components'),
-                'relative_package_path': rel_path('dash_core_components')
-            }]
+            Input._css_dist = [
+                {
+                    'external_url': external_url('dash_core_components'),
+                    'relative_package_path': rel_path('dash_core_components'),
+                }
+            ]
 
         else:
-            Div._js_dist = Span._js_dist = [{
-                'external_url': external_url('dash_html_components'),
-                'relative_package_path': rel_path('dash_html_components')
-            }]
+            Div._js_dist = Span._js_dist = [
+                {
+                    'external_url': external_url('dash_html_components'),
+                    'relative_package_path': rel_path('dash_html_components'),
+                }
+            ]
 
-            Input._js_dist = [{
-                'external_url': external_url('dash_core_components'),
-                'relative_package_path': rel_path('dash_core_components')
-            }]
+            Input._js_dist = [
+                {
+                    'external_url': external_url('dash_core_components'),
+                    'relative_package_path': rel_path('dash_core_components'),
+                }
+            ]
 
         layout = Div([None, 'string', Span(), Div(Input())])
 
@@ -73,45 +74,43 @@ class TestResources(unittest.TestCase):
         expected_filtered_external_resources = [
             {
                 'external_url': external_url('dash_html_components'),
-                'namespace': 'dash_html_components'
+                'namespace': 'dash_html_components',
             },
             {
                 'external_url': external_url('dash_core_components'),
-                'namespace': 'dash_core_components'
-            }
+                'namespace': 'dash_core_components',
+            },
         ]
         expected_filtered_relative_resources = [
             {
                 'relative_package_path': rel_path('dash_html_components'),
-                'namespace': 'dash_html_components'
+                'namespace': 'dash_html_components',
             },
             {
                 'relative_package_path': rel_path('dash_core_components'),
-                'namespace': 'dash_core_components'
-            }
+                'namespace': 'dash_core_components',
+            },
         ]
 
         if css_or_js == 'css':
             self.assertEqual(
-                resources.get_all_css(),
-                expected_filtered_external_resources
+                resources.get_all_css(), expected_filtered_external_resources
             )
         else:
             self.assertEqual(
                 resources.get_all_scripts(),
-                expected_filtered_external_resources
+                expected_filtered_external_resources,
             )
 
         resources.config.serve_locally = True
         if css_or_js == 'css':
             self.assertEqual(
-                resources.get_all_css(),
-                expected_filtered_relative_resources
+                resources.get_all_css(), expected_filtered_relative_resources
             )
         else:
             self.assertEqual(
                 resources.get_all_scripts(),
-                expected_filtered_relative_resources
+                expected_filtered_relative_resources,
             )
 
         resources.config.serve_locally = False
@@ -121,16 +120,10 @@ class TestResources(unittest.TestCase):
         ]
         if css_or_js == 'css':
             resources.append_css(extra_resource)
-            self.assertEqual(
-                resources.get_all_css(),
-                expected_resources
-            )
+            self.assertEqual(resources.get_all_css(), expected_resources)
         else:
             resources.append_script(extra_resource)
-            self.assertEqual(
-                resources.get_all_scripts(),
-                expected_resources
-            )
+            self.assertEqual(resources.get_all_scripts(), expected_resources)
 
         resources.config.serve_locally = True
         with warnings.catch_warnings(record=True) as w:
@@ -138,7 +131,7 @@ class TestResources(unittest.TestCase):
             if css_or_js == 'css':
                 self.assertEqual(
                     resources.get_all_css(),
-                    expected_filtered_relative_resources
+                    expected_filtered_relative_resources,
                 )
                 assert len(w) == 1
                 assert 'A local version of {} is not available'.format(
@@ -148,7 +141,7 @@ class TestResources(unittest.TestCase):
             else:
                 self.assertEqual(
                     resources.get_all_scripts(),
-                    expected_filtered_relative_resources
+                    expected_filtered_relative_resources,
                 )
                 assert len(w) == 1
                 assert 'A local version of {} is not available'.format(
