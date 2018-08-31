@@ -237,7 +237,11 @@ class Dash(object):
                 target=lambda: _watch.watch([self._assets_folder],
                                             self._on_assets_change,
                                             sleep_time=0.5))
+            self._watch_thread.daemon = True
             self._watch_thread.start()
+
+            if not self.server.debug:
+                self.server.debug = True
 
     @property
     def layout(self):
