@@ -16,7 +16,7 @@ class Resources:
     def append_resource(self, resource):
         self._resources.append(resource)
 
-    def _filter_resources(self, all_resources):
+    def _filter_resources(self, all_resources, dev_bundles=False):
         filtered_resources = []
         for s in all_resources:
             filtered_resource = {}
@@ -24,9 +24,14 @@ class Resources:
                 filtered_resource['namespace'] = s['namespace']
             if 'external_url' in s and not self.config.serve_locally:
                 filtered_resource['external_url'] = s['external_url']
-            elif 'relative_package_path' in s:
+            elif 'relative_package_path' in s and \
+                    (not dev_bundles and 'dev_package_path' not in s):
                 filtered_resource['relative_package_path'] = (
                     s['relative_package_path']
+                )
+            elif 'dev_package_path' in s:
+                filtered_resource['relative_package_path'] = (
+                    s['dev_package_path']
                 )
             elif 'absolute_path' in s:
                 filtered_resource['absolute_path'] = s['absolute_path']
@@ -54,7 +59,7 @@ class Resources:
 
         return filtered_resources
 
-    def get_all_resources(self):
+    def get_all_resources(self, dev_bundles=False):
         all_resources = []
         if self.config.infer_from_layout:
             all_resources = (
@@ -63,7 +68,7 @@ class Resources:
         else:
             all_resources = self._resources
 
-        return self._filter_resources(all_resources)
+        return self._filter_resources(all_resources, dev_bundles)
 
     def get_inferred_resources(self):
         namespaces = []
@@ -127,8 +132,8 @@ class Scripts:  # pylint: disable=old-style-class
     def append_script(self, script):
         self._resources.append_resource(script)
 
-    def get_all_scripts(self):
-        return self._resources.get_all_resources()
+    def get_all_scripts(self, dev_bundles=False):
+        return self._resources.get_all_resources(dev_bundles)
 
     def get_inferred_scripts(self):
         return self._resources.get_inferred_resources()

@@ -86,6 +86,7 @@ class Dash(object):
             external_scripts=None,
             external_stylesheets=None,
             suppress_callback_exceptions=None,
+            serve_dev_bundles=False,
             **kwargs):
 
         # pylint-disable: too-many-instance-attributes
@@ -216,6 +217,7 @@ class Dash(object):
         self._layout = None
         self._cached_layout = None
         self.routes = []
+        self._serve_dev_bundle = serve_dev_bundles
 
     @property
     def layout(self):
